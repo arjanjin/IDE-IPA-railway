@@ -3,6 +3,7 @@ uvicorn>=0.34.0
 sqlalchemy>=2.0.40
 psycopg2-binary>=2.9.9
 chromadb>=0.6.3
+sentence-transformers>=3.0.0
 python-dotenv>=1.0.1
 httpx>=0.28.0
 pydantic>=2.11.0

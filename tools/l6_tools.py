@@ -22,6 +22,17 @@ _NOW = "CURRENT_TIMESTAMP" if _is_sqlite else "NOW()"
 
 # ── ChromaDB lazy init ───────────────────────────────────
 _chroma_client = None
+_embedding_fn = None
+
+def get_embedding_fn():
+    """Lazy-load multilingual embedding model (supports Thai)"""
+    global _embedding_fn
+    if _embedding_fn is None:
+        from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+        _embedding_fn = SentenceTransformerEmbeddingFunction(
+            model_name="paraphrase-multilingual-MiniLM-L12-v2"
+        )
+    return _embedding_fn
 
 def get_chroma():
     global _chroma_client
@@ -29,6 +40,14 @@ def get_chroma():
         import chromadb
         _chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
     return _chroma_client
+
+def get_collection(name: str):
+    """Get or create a ChromaDB collection with multilingual embeddings"""
+    return get_chroma().get_or_create_collection(
+        name=name,
+        embedding_function=get_embedding_fn(),
+        metadata={"hnsw:space": "cosine"}
+    )
 
 
 def init_l6_db():
@@ -247,11 +266,7 @@ def query_memory(query: str, task_type: str,
     strategy = MEMORY_STRATEGIES.get(task_type, "similarity_search")
 
     try:
-        chroma = get_chroma()
-        collection = chroma.get_or_create_collection(
-            name=agent_id,
-            metadata={"hnsw:space": "cosine"}
-        )
+        collection = get_collection(agent_id)
         count = collection.count()
 
         if count == 0:
@@ -308,11 +323,7 @@ def write_shared_kb(agent_id: str, finding: str,
     ทุก Agent (A1-A4) เขียนและอ่านได้
     """
     try:
-        chroma = get_chroma()
-        collection = chroma.get_or_create_collection(
-            name="shared_kb",
-            metadata={"hnsw:space": "cosine"}
-        )
+        collection = get_collection("shared_kb")
         doc_id = f"{agent_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         collection.upsert(
             ids=[doc_id],
@@ -346,8 +357,7 @@ def read_shared_kb(query: str, min_relevance: float = 0.7,
     ทุก agent อ่านได้ — filter ด้วย min_relevance
     """
     try:
-        chroma = get_chroma()
-        collection = chroma.get_or_create_collection(name="shared_kb")
+        collection = get_collection("shared_kb")
         count = collection.count()
 
         if count == 0:
