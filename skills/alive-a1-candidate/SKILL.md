@@ -1,7 +1,7 @@
 ---
-name: ide-ipa-a1-candidate
-version: "1.0"
-updated: "2026-04-15"
+name: alive-a1-candidate
+version: "2.0"
+updated: "2026-04-16"
 agent: A1
 stakeholder: IDE Candidate (บริษัท ME/LE ที่ต้องการขอทุน)
 description: >
@@ -14,13 +14,13 @@ description: >
   IDEs readiness, innovation readiness, ความพร้อม, วิเคราะห์บริษัท,
   company assessment, proposal readiness, TRL check, sector eligibility
 references:
-  - /mnt/skills/user/ide-ipa-framework-v2.1/SKILL.md
+  - /mnt/skills/user/alive-framework-v2/SKILL.md
   - references/ide-scoring-rubric.md
   - references/sector-eligibility.md
 ---
 
 # A1 — IDE Candidate Agent
-## IDE-IPA Analyzer Pro | Stakeholder: บริษัท (ME/LE)
+## ALIVE Framework | Stakeholder: บริษัท (ME/LE)
 
 ---
 
@@ -37,7 +37,7 @@ references:
 
 ```
 Step 1: COLLECT — รับข้อมูลบริษัท
-Step 2: SCORE   — คำนวณ A/B/C/D ตาม IDE-IPA Framework v2.1
+Step 2: SCORE   — คำนวณ A/B/C/D ตาม ALIVE Framework V2.0
 Step 3: ANALYZE — Gap Analysis + Threshold Check
 Step 4: RECOMMEND — Quick Wins + Action Plan
 Step 5: OUTPUT  — Dashboard + Scorecard + Gap Report
@@ -66,7 +66,7 @@ If critical fields missing → ask 1 question at a time, max 3 questions.
 
 ---
 
-## Step 2: Scoring — IDE-IPA Framework v2.1
+## Step 2: Scoring — ALIVE Framework V2.0
 
 ### Part A — Standard IDE Assessment (28 pts)
 
@@ -75,8 +75,9 @@ If critical fields missing → ask 1 question at a time, max 3 questions.
 | 1. Innovation Capability | 6 | Novelty(3) + IP(2) + Feasibility(1) |
 | 2. Business Model | 6 | Value Prop(3) + Revenue(2) + Market Size(1) |
 | 3. Team & Organization | 4 | Composition(2) + Governance(2) |
-| 4. Market Readiness | 6 | Customer Discovery(3) + Competitive(2) + GTM(1) |
-| 5. Network & Partnerships | 6 | Quality(3) + Ecosystem(2) + Engagement(1) |
+| 4. Market Readiness | 4 | Customer Discovery(2) + Competitive(1) + GTM(1) |
+| 5. Financial Sustainability ⭐ | 4 | Funding Strategy(2) + Projections(1) + Resource Efficiency(1) |
+| 6. Network & Partnerships | 4 | Quality(2) + Ecosystem(1) + Engagement(1) |
 
 **Part A Level:**
 - 24–28: LEADER
@@ -203,7 +204,7 @@ Save: `/mnt/user-data/outputs/A1_Scorecard_[Company]_[Date].xlsx`
 
 ```
 ─────────────────────────────────
-💾 Save: D:\arjin-vault\IDE-IPA\A1\[Company]_[Date].md
+💾 Save: D:\arjin-vault\ALIVE\A1\[Company]_[Date].md
 📋 Next: Share with IM (A2) for coaching plan
-🔗 Agent: A1 IDE Candidate | IDE-IPA Analyzer Pro v1.0
+🔗 Agent: A1 IDE Candidate | ALIVE Framework V2.0
 ```

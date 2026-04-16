@@ -1,7 +1,7 @@
 ---
-name: ide-ipa-a2-im
-version: "1.0"
-updated: "2026-04-15"
+name: alive-a2-im
+version: "2.0"
+updated: "2026-04-16"
 agent: A2
 stakeholder: IM — Intermediary (นิติบุคคลไทยที่ coach IDE Candidates)
 description: >
@@ -15,13 +15,13 @@ description: >
   ติดตามความก้าวหน้า, dashboard portfolio, monthly report, บพข. report,
   IDE cohort, track progress, coaching session, แผน coaching
 references:
-  - /mnt/skills/user/ide-ipa-framework-v2.1/SKILL.md
+  - /mnt/skills/user/alive-framework-v2/SKILL.md
   - references/coaching-framework.md
   - references/bpkh-reporting.md
 ---
 
 # A2 — IM (Intermediary) Agent
-## IDE-IPA Analyzer Pro | Stakeholder: Intermediary
+## ALIVE Framework | Stakeholder: Intermediary
 
 ---
 
@@ -207,7 +207,7 @@ Save: `/mnt/user-data/outputs/A2_Portfolio_[IM]_[Month].xlsx`
 
 ```
 ─────────────────────────────────
-💾 Save: D:\arjin-vault\IDE-IPA\A2\[IM]_[Month].md
+💾 Save: D:\arjin-vault\ALIVE\A2\[IM]_[Month].md
 📋 Next: Share A3 Deep Analysis for at-risk companies
-🔗 Agent: A2 IM | IDE-IPA Analyzer Pro v1.0
+🔗 Agent: A2 IM | ALIVE Framework V2.0
 ```

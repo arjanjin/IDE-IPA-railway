@@ -1,12 +1,12 @@
 ---
-name: ide-ipa-a3-ibds
-version: "1.0"
-updated: "2026-04-15"
+name: alive-a3-ibds
+version: "2.0"
+updated: "2026-04-16"
 agent: A3
 stakeholder: IBDS — Innovation Business Development Service (ที่ปรึกษา)
 description: >
   A3 IBDS Agent — วิเคราะห์เชิงลึกและสร้าง deliverable คุณภาพสูงให้ลูกค้า
-  สำหรับ IBDS ที่ให้บริการวิเคราะห์ IDE-IPA แก่บริษัทและ Intermediary
+  สำหรับ IBDS ที่ให้บริการวิเคราะห์ ALIVE แก่บริษัทและ Intermediary
   Auto-produces: (1) Full IPA Report PDF, (2) Visual Canvas HTML,
   (3) Client Presentation PPTX, (4) Radar Chart SVG, (5) Literature Pack
   ALWAYS trigger when user mentions: IBDS, ที่ปรึกษา, consultant,
@@ -15,13 +15,13 @@ description: >
   evidence pack, IPA full analysis, impact assessment, client deliverable,
   research evidence, proposal strengthening, due diligence
 references:
-  - /mnt/skills/user/ide-ipa-framework-v2.1/SKILL.md
+  - /mnt/skills/user/alive-framework-v2/SKILL.md
   - references/ipa-methodology.md
   - references/literature-sources.md
 ---
 
 # A3 — IBDS Agent
-## IDE-IPA Analyzer Pro | Stakeholder: IBDS (ที่ปรึกษา)
+## ALIVE Framework | Stakeholder: IBDS (ที่ปรึกษา)
 
 ---
 
@@ -164,7 +164,7 @@ For each major claim in proposal:
 - Export: SVG (for PDF) + PNG (for PPTX)
 
 ### IDE Impact Pathway Canvas (HTML)
-- Full v2.1 Canvas: A:28 / B:22 / C:25 / D:25
+- ALIVE V2.0 Canvas: A:28 / B:22 / C:25 / D:25
 - Auto-populated from Module A–F analysis
 - Print-ready layout
 
@@ -209,7 +209,7 @@ Appendix:  Literature Evidence (APA citations)
 Save: `/mnt/user-data/outputs/A3_FullReport_[Client]_[Date].pdf`
 
 ### A3-OUT-2: Visual Canvas (HTML)
-- IDE Impact Pathway Canvas v2.1
+- ALIVE Framework V2.0 Canvas
 - Auto-populated from analysis
 
 ### A3-OUT-3: Presentation (PPTX 15 slides)
@@ -240,7 +240,7 @@ Save: `/mnt/user-data/outputs/A3_Radar_[Client]_[Date].svg`
 
 ```
 ─────────────────────────────────
-💾 Save: D:\arjin-vault\IDE-IPA\A3\[Client]_[Date].md
+💾 Save: D:\arjin-vault\ALIVE\A3\[Client]_[Date].md
 📋 Next: Share with A4 Funder Agent for SROI + Policy Brief
-🔗 Agent: A3 IBDS | IDE-IPA Analyzer Pro v1.0
+🔗 Agent: A3 IBDS | ALIVE Framework V2.0
 ```

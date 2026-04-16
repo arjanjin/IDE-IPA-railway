@@ -1,5 +1,5 @@
 """
-IDE-IPA Analyzer Pro — MCP Protocol Server + Health Endpoints
+ALIVE Framework V2.0 — MCP Protocol Server + Health Endpoints
 ไม่ต้องใช้ ANTHROPIC_API_KEY
 Claude (claude.ai Max Plan) เป็น AI
 Railway host: Tools + PostgreSQL + ChromaDB
@@ -23,7 +23,7 @@ from tools.ide_ipa_tools import (
     score_part_b,
     score_part_c,
     score_part_d,
-    ide_ipa_overall_score,
+    alive_overall_score,
     calculate_sroi,
     log_coaching_session,
     get_history,
@@ -62,7 +62,7 @@ class BearerTokenAuthMiddleware(BaseHTTPMiddleware):
             return PlainTextResponse(
                 "Unauthorized — ต้องใส่ Authorization: Bearer <token>",
                 status_code=401,
-                headers={"WWW-Authenticate": 'Bearer realm="IDE-IPA Analyzer Pro"'},
+                headers={"WWW-Authenticate": 'Bearer realm="ALIVE Framework"'},
             )
 
         token = auth_header[7:]  # ตัด "Bearer " ออก
@@ -85,8 +85,8 @@ class BearerTokenAuthMiddleware(BaseHTTPMiddleware):
 # MCP Protocol Server (FastMCP)
 # ════════════════════════════════════════════════════════
 mcp = FastMCP(
-    "IDE-IPA Analyzer Pro",
-    instructions="IDE-IPA Analyzer Pro — Framework v2.1 tools for assessing Innovation Driven Enterprises. ไม่ต้องใช้ API Key.",
+    "ALIVE Framework",
+    instructions="ALIVE Framework V2.0 — tools for assessing Innovation Driven Enterprises. ไม่ต้องใช้ API Key.",
     host="0.0.0.0",
     port=int(os.environ.get("PORT", "8000")),
     transport_security=TransportSecuritySettings(
@@ -95,10 +95,10 @@ mcp = FastMCP(
 )
 
 
-# ── IDE-IPA Tools (7) ──────────────────────────────────
+# ── ALIVE Tools (7) ───────────────────────────────────
 @mcp.tool()
 def analyzer_pro_load_framework() -> dict:
-    """โหลด IDE-IPA Analyzer Pro Framework v2.1 Scoring Rubric ทั้งหมด (Parts A-D, thresholds, dimensions)"""
+    """โหลด ALIVE Framework V2.0 Scoring Rubric ทั้งหมด (Parts A-D, thresholds, dimensions, special_cases)"""
     return load_framework()
 
 
@@ -109,49 +109,59 @@ def analyzer_pro_score_part_a(
     business_model: int,
     team_organization: int,
     market_readiness: int,
+    financial_sustainability: int,
     network_partnerships: int,
 ) -> dict:
-    """ประเมิน Part A Standard IDE Assessment (max 28 คะแนน)
-    - innovation_capability: 0-6
-    - business_model: 0-6
-    - team_organization: 0-4
-    - market_readiness: 0-6
-    - network_partnerships: 0-6
+    """ประเมิน Part A Standard IDE Assessment (max 28 คะแนน) ALIVE V2.0
+    - innovation_capability: 0-6 (Novelty, IP Strategy, Technical Feasibility)
+    - business_model: 0-6 (Value Proposition, Revenue Model, Market Size)
+    - team_organization: 0-4 (Team Composition, Management Capacity)
+    - market_readiness: 0-4 (Customer Discovery, Competitive Analysis, Go-to-Market)
+    - financial_sustainability: 0-4 ⭐NEW (Funding Strategy, Financial Projections, Resource Efficiency)
+    - network_partnerships: 0-4 (Partnership Quality, Ecosystem Integration, Stakeholder Engagement)
     """
     return score_part_a(company, innovation_capability, business_model,
-                        team_organization, market_readiness, network_partnerships)
+                        team_organization, market_readiness,
+                        financial_sustainability, network_partnerships)
 
 
 @mcp.tool()
 def analyzer_pro_score_part_b(
     company: str,
-    b1_technology_readiness: int,
-    b2_innovation_output: int,
-    b3_knowledge_management: int,
+    b7_research_quality: int,
+    b8_tech_transfer: int,
+    b9_scalability_replication: int,
+    b10_vvn_alignment: int,
 ) -> dict:
-    """ประเมิน Part B Innovation Performance (max 22 คะแนน)
-    - b1_technology_readiness: 0-8 (TRL Level, Prototype, Technical Validation)
-    - b2_innovation_output: 0-8 (Patents/IP, Products/Services, Process Innovation)
-    - b3_knowledge_management: 0-6 (R&D Capability, Learning Org, Knowledge Transfer)
+    """ประเมิน Part B Research-Specific Assessment (max 22 คะแนน) ALIVE V2.0
+    - b7_research_quality: 0-8 (Methodological Rigor, Evidence Base, Research Team)
+    - b8_tech_transfer: 0-6 (TRL/MRL Advancement, IP & Commercialization, Industry Collaboration)
+    - b9_scalability_replication: 0-6 (Adaptability, Replication Strategy, Scaling Economics)
+    - b10_vvn_alignment: 0-2 ⭐NEW (Platform & Frontier Alignment, National KPI Contribution)
     """
-    return score_part_b(company, b1_technology_readiness, b2_innovation_output,
-                        b3_knowledge_management)
+    return score_part_b(company, b7_research_quality, b8_tech_transfer,
+                        b9_scalability_replication, b10_vvn_alignment)
 
 
 @mcp.tool()
 def analyzer_pro_score_part_c(
     company: str,
-    c1_economic_impact: int,
-    c2_social_impact: int,
-    c3_environmental_sustainability: int,
+    c1_pathway_architecture: int,
+    c2_causal_logic_toc: int,
+    c3_assumptions_risk: int,
+    c4_impact_measurement: int,
+    c5_adaptive_management: int,
 ) -> dict:
-    """ประเมิน Part C Impact & Sustainability (max 25 คะแนน)
-    - c1_economic_impact: 0-10 (Revenue Growth, Job Creation, Value Chain)
-    - c2_social_impact: 0-8 (Community Benefit, Skill Development, Inclusiveness)
-    - c3_environmental_sustainability: 0-7 (Resource Efficiency, Carbon, Circular Economy)
+    """ประเมิน Part C Impact Pathway Logic — Ex-Ante Analysis (max 25 คะแนน) ALIVE V2.0
+    - c1_pathway_architecture: 0-7 (Five-Stage Structure, Stakeholder Mapping, Temporal Logic)
+    - c2_causal_logic_toc: 0-8 (If-Then Causal Statements, Theoretical Grounding, Evidence Base)
+    - c3_assumptions_risk: 0-5 (Critical Assumptions, Risk Assessment Matrix, Mitigation)
+    - c4_impact_measurement: 0-3 (SMART Indicators, Measurement Feasibility)
+    - c5_adaptive_management: 0-2 (Monitoring & Feedback Loops, Learning & Knowledge Management)
     """
-    return score_part_c(company, c1_economic_impact, c2_social_impact,
-                        c3_environmental_sustainability)
+    return score_part_c(company, c1_pathway_architecture, c2_causal_logic_toc,
+                        c3_assumptions_risk, c4_impact_measurement,
+                        c5_adaptive_management)
 
 
 @mcp.tool()
@@ -161,10 +171,10 @@ def analyzer_pro_score_part_d(
     d2_calculation: int,
     d3_evaluative_plan: int,
 ) -> dict:
-    """ประเมิน Part D SROI Assessment (max 25 คะแนน)
-    - d1_forecast_model: 0-10
-    - d2_calculation: 0-8
-    - d3_evaluative_plan: 0-7
+    """ประเมิน Part D SROI Assessment (max 25 คะแนน) ALIVE V2.0
+    - d1_forecast_model: 0-10 (Input Identification, Outcome Valuation, Impact Adjustment DW×AT×DP×Dropoff)
+    - d2_calculation: 0-8 (NPV & Discount Rate, Sensitivity 3 Scenarios, Transparency)
+    - d3_evaluative_plan: 0-7 (Baseline & Counterfactual, Stakeholder Engagement, Reporting)
     """
     return score_part_d(company, d1_forecast_model, d2_calculation, d3_evaluative_plan)
 
@@ -180,7 +190,7 @@ def analyzer_pro_overall_score(
     save: bool = True,
 ) -> dict:
     """คำนวณ Overall Score + Funding Decision (100 คะแนน) จาก Part A-D"""
-    return ide_ipa_overall_score(company, score_a, score_b, score_c, score_d, project, save)
+    return alive_overall_score(company, score_a, score_b, score_c, score_d, project, save)
 
 
 @mcp.tool()
@@ -295,7 +305,7 @@ async def health(request):
     return JSONResponse({
         "status": "ok",
         "aaos_level": os.environ.get("AAOS_LEVEL", "5.5"),
-        "framework": "IDE-IPA Analyzer Pro v2.1",
+        "framework": "ALIVE Framework V2.0",
         "tools": 15,
         "mcp_protocol": True,
         "auth": "bearer_token" if MCP_AUTH_TOKENS else "none",

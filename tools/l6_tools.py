@@ -305,7 +305,7 @@ def write_shared_kb(agent_id: str, finding: str,
                     tags: list, topic: str = "") -> dict:
     """
     Cross-agent Knowledge Sharing — เขียน findings ไป shared_kb
-    A2 Researcher เขียน → A1 Engineering อ่านได้เลย
+    ทุก Agent (A1-A4) เขียนและอ่านได้
     """
     try:
         chroma = get_chroma()

@@ -1,6 +1,6 @@
-# IDE Impact Pathway Canvas — Scoring Framework v2.1
+# ALIVE Framework V2.0 — Scoring Framework
 ## Central Reference | ใช้ร่วมกันทุก Agent (A1/A2/A3/A4)
-## Source: IDE_IPA_Framework_v2_1.pdf | Updated: 2026-04-15
+## Source: IDE_IPA_Framework_v2.2.pdf → rebranded ALIVE V2.0 | Updated: 2026-04-16
 
 ---
 
@@ -36,15 +36,21 @@
 | **3. Team & Organization** ⬇ | | **4** |
 | | 3.1 Team Composition & Expertise | 2 |
 | | 3.2 Management Capacity & Governance | 2 |
-| **4. Market Readiness** | | **6** |
-| | 4.1 Customer Discovery & Validation | 3 |
-| | 4.2 Competitive Analysis | 2 |
+| **4. Market Readiness** | | **4** |
+| | 4.1 Customer Discovery & Validation | 2 |
+| | 4.2 Competitive Analysis | 1 |
 | | 4.3 Go-to-Market Strategy | 1 |
-| **5. Network & Partnerships** | | **6** |
-| | 5.1 Partnership Quality & Commitment | 3 |
-| | 5.2 Ecosystem Integration | 2 |
-| | 5.3 Stakeholder Engagement Plan | 1 |
+| **5. Financial Sustainability** ⭐ NEW | | **4** |
+| | 5.1 Funding Strategy & Diversification | 2 |
+| | 5.2 Financial Projections & Unit Economics | 1 |
+| | 5.3 Resource Efficiency & Budget Allocation | 1 |
+| **6. Network & Partnerships** | | **4** |
+| | 6.1 Partnership Quality & Commitment | 2 |
+| | 6.2 Ecosystem Integration | 1 |
+| | 6.3 Stakeholder Engagement Plan | 1 |
 | **รวม Part A** | | **28** |
+
+> ปรับจาก v2.1: Market Readiness 6→4, Network 6→4, เพิ่ม Financial Sustainability (4)
 
 ### เกณฑ์ตีความ Part A
 

@@ -1,7 +1,7 @@
 ---
-name: ide-ipa-a4-funder
-version: "1.0"
-updated: "2026-04-15"
+name: alive-a4-funder
+version: "2.0"
+updated: "2026-04-16"
 agent: A4
 stakeholder: บพข./สกสว. (Funder — ผู้ให้ทุน)
 description: >
@@ -16,14 +16,14 @@ description: >
   forecast SROI, sensitivity analysis, deadweight, attribution, displacement,
   financial proxy, PV outcomes, discount rate, SROI range
 references:
-  - /mnt/skills/user/ide-ipa-framework-v2.1/SKILL.md
+  - /mnt/skills/user/alive-framework-v2/SKILL.md
   - references/sroi-standards.md
   - references/financial-proxies-thai.md
   - references/bpkh-criteria.md
 ---
 
 # A4 — Funder Agent
-## IDE-IPA Analyzer Pro | Stakeholder: บพข./สกสว. (Funder)
+## ALIVE Framework | Stakeholder: บพข./สกสว. (Funder)
 
 ---
 
@@ -269,7 +269,7 @@ Save: `/mnt/user-data/outputs/A4_Portfolio_SROI_[Date].xlsx`
 
 ```
 ─────────────────────────────────
-💾 Save: D:\arjin-vault\IDE-IPA\A4\[Project]_[Date].md
+💾 Save: D:\arjin-vault\ALIVE\A4\[Project]_[Date].md
 📋 Next: Submit Policy Brief to บพข. + store to ChromaDB
-🔗 Agent: A4 Funder | IDE-IPA Analyzer Pro v1.0
+🔗 Agent: A4 Funder | ALIVE Framework V2.0
 ```

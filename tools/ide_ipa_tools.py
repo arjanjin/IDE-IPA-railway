@@ -1,12 +1,12 @@
 """
-IDE-IPA Analyzer Pro Tools — ไม่ต้องใช้ ANTHROPIC_API_KEY
+ALIVE Framework V2.0 Tools — ไม่ต้องใช้ ANTHROPIC_API_KEY
 Claude (claude.ai Max Plan) เป็น AI — Railway host แค่ Tools + DB
 """
 from db import (save_score, save_overall, save_sroi,
                 save_session, get_assessment_history, get_coaching_log)
 
 FRAMEWORK = {
-    "version": "2.1",
+    "version": "2.0",
     "parts": {"A": 28, "B": 22, "C": 25, "D": 25},
     "thresholds": {"A": 9, "B": 8, "C": 12, "D": 12},
 }
@@ -58,7 +58,7 @@ def funding_decision(a, b, c, d, total) -> str:
 # TOOL 1 — Load Framework
 # ════════════════════════════════════════════════════════
 def load_framework() -> dict:
-    """โหลด IDE-IPA Analyzer Pro Framework v2.1 Scoring Rubric"""
+    """โหลด ALIVE Framework V2.0 Scoring Rubric"""
     return {
         "framework_version": FRAMEWORK["version"],
         "parts": FRAMEWORK["parts"],
@@ -66,38 +66,53 @@ def load_framework() -> dict:
         "scoring": {
             "A": {
                 "total": 28,
+                "description": "Standard IDE Assessment (นวัตกรรม, Business Model, ทีม, ตลาด, Financial, เครือข่าย)",
                 "dimensions": {
-                    "1_innovation_capability": {"max": 6, "sub": ["Novelty & Differentiation(3)", "IP Strategy(2)", "Technical Feasibility(1)"]},
-                    "2_business_model":        {"max": 6, "sub": ["Value Proposition(3)", "Revenue Model(2)", "Market Size(1)"]},
-                    "3_team_organization":     {"max": 4, "sub": ["Team Composition(2)", "Management Capacity(2)"]},
-                    "4_market_readiness":      {"max": 6, "sub": ["Customer Discovery(3)", "Competitive Analysis(2)", "Go-to-Market(1)"]},
-                    "5_network_partnerships":  {"max": 6, "sub": ["Partnership Quality(3)", "Ecosystem Integration(2)", "Stakeholder Engagement(1)"]},
+                    "1_innovation_capability":   {"max": 6, "sub": ["Novelty & Differentiation(3)", "IP Strategy(2)", "Technical Feasibility(1)"]},
+                    "2_business_model":          {"max": 6, "sub": ["Value Proposition(3)", "Revenue Model & Customer Acquisition(2)", "Market Size & Growth(1)"]},
+                    "3_team_organization":       {"max": 4, "sub": ["Team Composition & Expertise(2)", "Management Capacity & Governance(2)"]},
+                    "4_market_readiness":        {"max": 4, "sub": ["Customer Discovery & Validation(2)", "Competitive Analysis(1)", "Go-to-Market Strategy(1)"]},
+                    "5_financial_sustainability": {"max": 4, "sub": ["Funding Strategy & Diversification(2)", "Financial Projections & Unit Economics(1)", "Resource Efficiency & Budget Allocation(1)"]},
+                    "6_network_partnerships":    {"max": 4, "sub": ["Partnership Quality & Commitment(2)", "Ecosystem Integration(1)", "Stakeholder Engagement Plan(1)"]},
                 }
             },
             "B": {
                 "total": 22,
+                "description": "Research-Specific Assessment (Research Quality + ววน. Alignment)",
                 "dimensions": {
-                    "B1_technology_readiness":  {"max": 8, "sub": ["TRL Level(3)", "Prototype Status(3)", "Technical Validation(2)"]},
-                    "B2_innovation_output":     {"max": 8, "sub": ["Patents/IP(3)", "Products/Services(3)", "Process Innovation(2)"]},
-                    "B3_knowledge_management":  {"max": 6, "sub": ["R&D Capability(2)", "Learning Organization(2)", "Knowledge Transfer(2)"]},
+                    "7_research_quality":        {"max": 8, "sub": ["Methodological Rigor(3)", "Evidence Base & Literature(3)", "Research Team Capability(2)"]},
+                    "8_tech_transfer":           {"max": 6, "sub": ["TRL/MRL Advancement(3)", "IP & Commercialization Strategy(2)", "Industry Collaboration(1)"]},
+                    "9_scalability_replication":  {"max": 6, "sub": ["Adaptability to Contexts(2)", "Replication Strategy & Knowledge Transfer(2)", "Scaling Economics(2)"]},
+                    "10_vvn_alignment":          {"max": 2, "sub": ["Platform & Frontier Alignment(1)", "National KPI Contribution(1)"]},
                 }
             },
             "C": {
                 "total": 25,
+                "description": "Impact Pathway Logic — Ex-Ante Analysis",
                 "dimensions": {
-                    "C1_economic_impact":              {"max": 10, "sub": ["Revenue Growth(4)", "Job Creation(3)", "Value Chain Enhancement(3)"]},
-                    "C2_social_impact":                {"max": 8,  "sub": ["Community Benefit(3)", "Skill Development(3)", "Inclusiveness(2)"]},
-                    "C3_environmental_sustainability": {"max": 7,  "sub": ["Resource Efficiency(3)", "Carbon Footprint(2)", "Circular Economy(2)"]},
+                    "C1_pathway_architecture":   {"max": 7, "sub": ["Five-Stage Structure(3)", "Stakeholder Mapping(2)", "Temporal Logic(2)"]},
+                    "C2_causal_logic_toc":       {"max": 8, "sub": ["If-Then Causal Statements(3)", "Theoretical Grounding(3)", "Evidence Base(2)"]},
+                    "C3_assumptions_risk":       {"max": 5, "sub": ["Critical Assumptions(2)", "Risk Assessment Matrix(2)", "Mitigation & Contingency(1)"]},
+                    "C4_impact_measurement":     {"max": 3, "sub": ["SMART Indicators(2)", "Measurement Feasibility(1)"]},
+                    "C5_adaptive_management":    {"max": 2, "sub": ["Monitoring & Feedback Loops(1)", "Learning & Knowledge Management(1)"]},
                 }
             },
             "D": {
                 "total": 25,
+                "description": "SROI Assessment (Forecast Model, Calculation, Evaluative Plan)",
                 "dimensions": {
-                    "D1_forecast_model":    {"max": 10, "sub": ["Input Identification(3)", "Outcome Valuation(4)", "Impact Adjustments(3)"]},
-                    "D2_calculation":       {"max": 8,  "sub": ["NPV Calculation(4)", "Sensitivity 3 Scenarios(2)", "Transparency(2)"]},
-                    "D3_evaluative_plan":   {"max": 7,  "sub": ["Baseline & Counterfactual(3)", "Stakeholder Engagement(2)", "Reporting(2)"]},
+                    "D1_forecast_model":    {"max": 10, "sub": ["Input Identification & Valuation(3)", "Outcome Valuation & Financial Proxy(4)", "Impact Adjustment Factors: DW×AT×DP×Dropoff(3)"]},
+                    "D2_calculation":       {"max": 8,  "sub": ["NPV Calculation & Discount Rate Justification(4)", "Sensitivity Analysis 3 Scenarios(2)", "Transparency & Assumption Documentation(2)"]},
+                    "D3_evaluative_plan":   {"max": 7,  "sub": ["Baseline & Counterfactual Strategy(3)", "Stakeholder Engagement in Evaluation(2)", "Reporting & Learning Integration(2)"]},
                 }
             }
+        },
+        "special_cases": {
+            "high_cd_low_a": "Fund พร้อมแผน IDE Development Support: Mentoring, Training, Partnership Facilitation",
+            "high_a_low_cd": "Conditional Fund: แก้ไข Impact Pathway และ SROI Model ก่อนเบิกงวดแรก ภายใน 60 วัน",
+            "high_b_low_ad": "พิจารณาเฉพาะ Research Funding เท่านั้น ไม่เหมาะกับ IDE Program",
+            "high_d_low_c":  "ต้องแก้ไข Theory of Change ก่อน เพราะ SROI ที่ดีต้องมี Pathway Logic รองรับ",
+            "vvn_zero":      "Conditional Fund: ให้ปรับ Proposal เพื่อแสดง Platform Alignment และ National KPI Contribution ก่อนรับทุน",
         }
     }
 
@@ -107,14 +122,20 @@ def load_framework() -> dict:
 # ════════════════════════════════════════════════════════
 def score_part_a(company: str, innovation_capability: int,
                  business_model: int, team_organization: int,
-                 market_readiness: int, network_partnerships: int) -> dict:
-    """ประเมิน Part A — Standard IDE Assessment (max 28)"""
+                 market_readiness: int, financial_sustainability: int,
+                 network_partnerships: int) -> dict:
+    """ประเมิน Part A — Standard IDE Assessment (max 28)
+    ALIVE V2.0: 6 มิติ — innovation(6), business(6), team(4), market(4), financial(4), network(4)"""
+    MAX_DIM = {"1_innovation_capability": 6, "2_business_model": 6,
+               "3_team_organization": 4, "4_market_readiness": 4,
+               "5_financial_sustainability": 4, "6_network_partnerships": 4}
     scores = {
-        "1_innovation_capability": innovation_capability,
-        "2_business_model":        business_model,
-        "3_team_organization":     team_organization,
-        "4_market_readiness":      market_readiness,
-        "5_network_partnerships":  network_partnerships,
+        "1_innovation_capability":   min(innovation_capability, 6),
+        "2_business_model":          min(business_model, 6),
+        "3_team_organization":       min(team_organization, 4),
+        "4_market_readiness":        min(market_readiness, 4),
+        "5_financial_sustainability": min(financial_sustainability, 4),
+        "6_network_partnerships":    min(network_partnerships, 4),
     }
     total = sum(scores.values())
     lv = level_a(total)
@@ -126,6 +147,7 @@ def score_part_a(company: str, innovation_capability: int,
         "company": company,
         "part": "A",
         "scores": scores,
+        "max_per_dim": MAX_DIM,
         "total": total,
         "max": 28,
         "pct": round(total / 28 * 100, 1),
@@ -138,13 +160,18 @@ def score_part_a(company: str, innovation_capability: int,
 # ════════════════════════════════════════════════════════
 # TOOL 3 — Score Part B
 # ════════════════════════════════════════════════════════
-def score_part_b(company: str, b1_technology_readiness: int,
-                 b2_innovation_output: int, b3_knowledge_management: int) -> dict:
-    """ประเมิน Part B — Innovation Performance (max 22)"""
+def score_part_b(company: str, b7_research_quality: int,
+                 b8_tech_transfer: int, b9_scalability_replication: int,
+                 b10_vvn_alignment: int) -> dict:
+    """ประเมิน Part B — Research-Specific Assessment (max 22)
+    ALIVE V2.0: 4 มิติ — research_quality(8), tech_transfer(6), scalability(6), ววน.alignment(2)"""
+    MAX_DIM = {"7_research_quality": 8, "8_tech_transfer": 6,
+               "9_scalability_replication": 6, "10_vvn_alignment": 2}
     scores = {
-        "B1_technology_readiness":  b1_technology_readiness,
-        "B2_innovation_output":     b2_innovation_output,
-        "B3_knowledge_management":  b3_knowledge_management,
+        "7_research_quality":       min(b7_research_quality, 8),
+        "8_tech_transfer":          min(b8_tech_transfer, 6),
+        "9_scalability_replication": min(b9_scalability_replication, 6),
+        "10_vvn_alignment":         min(b10_vvn_alignment, 2),
     }
     total = sum(scores.values())
     lv = level_b(total)
@@ -156,25 +183,34 @@ def score_part_b(company: str, b1_technology_readiness: int,
         "company": company,
         "part": "B",
         "scores": scores,
+        "max_per_dim": MAX_DIM,
         "total": total,
         "max": 22,
         "pct": round(total / 22 * 100, 1),
         "level": lv,
         "threshold": 8,
         "pass": passed,
+        "vvn_flag": "⚠️ ววน. Alignment = 0 — ต้องปรับ Proposal" if scores["10_vvn_alignment"] == 0 else None,
     }
 
 
 # ════════════════════════════════════════════════════════
 # TOOL 4 — Score Part C
 # ════════════════════════════════════════════════════════
-def score_part_c(company: str, c1_economic_impact: int,
-                 c2_social_impact: int, c3_environmental_sustainability: int) -> dict:
-    """ประเมิน Part C — Impact & Sustainability (max 25)"""
+def score_part_c(company: str, c1_pathway_architecture: int,
+                 c2_causal_logic_toc: int, c3_assumptions_risk: int,
+                 c4_impact_measurement: int, c5_adaptive_management: int) -> dict:
+    """ประเมิน Part C — Impact Pathway Logic, Ex-Ante Analysis (max 25)
+    ALIVE V2.0: 5 มิติ — pathway(7), causal_logic(8), assumptions(5), measurement(3), adaptive(2)"""
+    MAX_DIM = {"C1_pathway_architecture": 7, "C2_causal_logic_toc": 8,
+               "C3_assumptions_risk": 5, "C4_impact_measurement": 3,
+               "C5_adaptive_management": 2}
     scores = {
-        "C1_economic_impact":               c1_economic_impact,
-        "C2_social_impact":                 c2_social_impact,
-        "C3_environmental_sustainability":  c3_environmental_sustainability,
+        "C1_pathway_architecture": min(c1_pathway_architecture, 7),
+        "C2_causal_logic_toc":     min(c2_causal_logic_toc, 8),
+        "C3_assumptions_risk":     min(c3_assumptions_risk, 5),
+        "C4_impact_measurement":   min(c4_impact_measurement, 3),
+        "C5_adaptive_management":  min(c5_adaptive_management, 2),
     }
     total = sum(scores.values())
     lv = level_c(total)
@@ -186,6 +222,7 @@ def score_part_c(company: str, c1_economic_impact: int,
         "company": company,
         "part": "C",
         "scores": scores,
+        "max_per_dim": MAX_DIM,
         "total": total,
         "max": 25,
         "pct": round(total / 25 * 100, 1),
@@ -200,11 +237,14 @@ def score_part_c(company: str, c1_economic_impact: int,
 # ════════════════════════════════════════════════════════
 def score_part_d(company: str, d1_forecast_model: int,
                  d2_calculation: int, d3_evaluative_plan: int) -> dict:
-    """ประเมิน Part D — SROI Assessment (max 25)"""
+    """ประเมิน Part D — SROI Assessment (max 25)
+    ALIVE V2.0: 3 มิติ — forecast_model(10), calculation(8), evaluative_plan(7)"""
+    MAX_DIM = {"D1_forecast_model": 10, "D2_calculation": 8,
+               "D3_evaluative_plan": 7}
     scores = {
-        "D1_forecast_model":  d1_forecast_model,
-        "D2_calculation":     d2_calculation,
-        "D3_evaluative_plan": d3_evaluative_plan,
+        "D1_forecast_model":  min(d1_forecast_model, 10),
+        "D2_calculation":     min(d2_calculation, 8),
+        "D3_evaluative_plan": min(d3_evaluative_plan, 7),
     }
     total = sum(scores.values())
     lv = level_d(total)
@@ -216,6 +256,7 @@ def score_part_d(company: str, d1_forecast_model: int,
         "company": company,
         "part": "D",
         "scores": scores,
+        "max_per_dim": MAX_DIM,
         "total": total,
         "max": 25,
         "pct": round(total / 25 * 100, 1),
@@ -228,7 +269,7 @@ def score_part_d(company: str, d1_forecast_model: int,
 # ════════════════════════════════════════════════════════
 # TOOL 4 — Overall Score
 # ════════════════════════════════════════════════════════
-def ide_ipa_overall_score(company: str, score_a: int, score_b: int,
+def alive_overall_score(company: str, score_a: int, score_b: int,
                           score_c: int, score_d: int,
                           project: str = "", save: bool = True) -> dict:
     """คำนวณ Overall Score + Funding Decision"""
@@ -268,7 +309,9 @@ def calculate_sroi(company: str, investment: float, gross_annual: float,
                    duration_yr: int, deadweight: float = 0.15,
                    attribution: float = 0.20, displacement: float = 0.05,
                    discount_rate: float = 0.05) -> dict:
-    """คำนวณ Forecast SROI + Sensitivity Analysis 3 Scenarios"""
+    """คำนวณ Forecast SROI + Sensitivity Analysis 3 Scenarios (ALIVE V2.0)"""
+    if investment <= 0:
+        return {"error": "investment must be > 0", "company": company}
 
     def compute_pv(gross_factor: float) -> float:
         net = gross_annual * gross_factor
@@ -287,7 +330,7 @@ def calculate_sroi(company: str, investment: float, gross_annual: float,
 
     def fund_signal(r: float) -> str:
         if r >= 4.0: return "✅✅ Priority Fund"
-        if r >= 2.5: return "✅✅ Priority Fund"
+        if r >= 2.5: return "✅ Strong Fund"
         if r >= 1.5: return "✅ Fund"
         return "❌ Do Not Fund"
 
@@ -316,7 +359,7 @@ def calculate_sroi(company: str, investment: float, gross_annual: float,
             "optimistic":  {"pv": pv_opt,  "sroi": sroi_opt,  "decision": fund_signal(sroi_opt)},
         },
         "sroi_range": f"{sroi_pess}x – {sroi_opt}x (Base: {sroi_base}x)",
-        "standard": "SVI 7 Principles + IDE-IPA Analyzer Pro v2.1",
+        "standard": "SVI 7 Principles + ALIVE Framework V2.0",
     }
 
 
