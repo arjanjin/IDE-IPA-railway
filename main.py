@@ -30,9 +30,16 @@ db.init_db()
 # ════════════════════════════════════════════════════════
 # MCP Protocol Server (FastMCP)
 # ════════════════════════════════════════════════════════
+from mcp.server.transport_security import TransportSecuritySettings
+
 mcp = FastMCP(
     "IDE-IPA Analyzer Pro",
     instructions="IDE-IPA Analyzer Pro — Framework v2.1 tools for assessing Innovation Driven Enterprises. ไม่ต้องใช้ API Key.",
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", "8000")),
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False,
+    ),
 )
 
 
