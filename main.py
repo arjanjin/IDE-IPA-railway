@@ -20,6 +20,8 @@ from tools.l6_tools import (evaluate_output, check_convergence, query_memory,
 from tools.ide_ipa_tools import (
     load_framework,
     score_part_a,
+    score_part_b,
+    score_part_c,
     score_part_d,
     ide_ipa_overall_score,
     calculate_sroi,
@@ -118,6 +120,38 @@ def analyzer_pro_score_part_a(
     """
     return score_part_a(company, innovation_capability, business_model,
                         team_organization, market_readiness, network_partnerships)
+
+
+@mcp.tool()
+def analyzer_pro_score_part_b(
+    company: str,
+    b1_technology_readiness: int,
+    b2_innovation_output: int,
+    b3_knowledge_management: int,
+) -> dict:
+    """ประเมิน Part B Innovation Performance (max 22 คะแนน)
+    - b1_technology_readiness: 0-8 (TRL Level, Prototype, Technical Validation)
+    - b2_innovation_output: 0-8 (Patents/IP, Products/Services, Process Innovation)
+    - b3_knowledge_management: 0-6 (R&D Capability, Learning Org, Knowledge Transfer)
+    """
+    return score_part_b(company, b1_technology_readiness, b2_innovation_output,
+                        b3_knowledge_management)
+
+
+@mcp.tool()
+def analyzer_pro_score_part_c(
+    company: str,
+    c1_economic_impact: int,
+    c2_social_impact: int,
+    c3_environmental_sustainability: int,
+) -> dict:
+    """ประเมิน Part C Impact & Sustainability (max 25 คะแนน)
+    - c1_economic_impact: 0-10 (Revenue Growth, Job Creation, Value Chain)
+    - c2_social_impact: 0-8 (Community Benefit, Skill Development, Inclusiveness)
+    - c3_environmental_sustainability: 0-7 (Resource Efficiency, Carbon, Circular Economy)
+    """
+    return score_part_c(company, c1_economic_impact, c2_social_impact,
+                        c3_environmental_sustainability)
 
 
 @mcp.tool()
@@ -262,7 +296,7 @@ async def health(request):
         "status": "ok",
         "aaos_level": os.environ.get("AAOS_LEVEL", "5.5"),
         "framework": "IDE-IPA Analyzer Pro v2.1",
-        "tools": 13,
+        "tools": 15,
         "mcp_protocol": True,
         "auth": "bearer_token" if MCP_AUTH_TOKENS else "none",
         "db": "PostgreSQL",

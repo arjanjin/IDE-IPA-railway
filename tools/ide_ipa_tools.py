@@ -74,6 +74,22 @@ def load_framework() -> dict:
                     "5_network_partnerships":  {"max": 6, "sub": ["Partnership Quality(3)", "Ecosystem Integration(2)", "Stakeholder Engagement(1)"]},
                 }
             },
+            "B": {
+                "total": 22,
+                "dimensions": {
+                    "B1_technology_readiness":  {"max": 8, "sub": ["TRL Level(3)", "Prototype Status(3)", "Technical Validation(2)"]},
+                    "B2_innovation_output":     {"max": 8, "sub": ["Patents/IP(3)", "Products/Services(3)", "Process Innovation(2)"]},
+                    "B3_knowledge_management":  {"max": 6, "sub": ["R&D Capability(2)", "Learning Organization(2)", "Knowledge Transfer(2)"]},
+                }
+            },
+            "C": {
+                "total": 25,
+                "dimensions": {
+                    "C1_economic_impact":              {"max": 10, "sub": ["Revenue Growth(4)", "Job Creation(3)", "Value Chain Enhancement(3)"]},
+                    "C2_social_impact":                {"max": 8,  "sub": ["Community Benefit(3)", "Skill Development(3)", "Inclusiveness(2)"]},
+                    "C3_environmental_sustainability": {"max": 7,  "sub": ["Resource Efficiency(3)", "Carbon Footprint(2)", "Circular Economy(2)"]},
+                }
+            },
             "D": {
                 "total": 25,
                 "dimensions": {
@@ -120,7 +136,67 @@ def score_part_a(company: str, innovation_capability: int,
 
 
 # ════════════════════════════════════════════════════════
-# TOOL 3 — Score Part D
+# TOOL 3 — Score Part B
+# ════════════════════════════════════════════════════════
+def score_part_b(company: str, b1_technology_readiness: int,
+                 b2_innovation_output: int, b3_knowledge_management: int) -> dict:
+    """ประเมิน Part B — Innovation Performance (max 22)"""
+    scores = {
+        "B1_technology_readiness":  b1_technology_readiness,
+        "B2_innovation_output":     b2_innovation_output,
+        "B3_knowledge_management":  b3_knowledge_management,
+    }
+    total = sum(scores.values())
+    lv = level_b(total)
+    passed = total >= FRAMEWORK["thresholds"]["B"]
+
+    save_score(company, "B", total, 22, lv, passed)
+
+    return {
+        "company": company,
+        "part": "B",
+        "scores": scores,
+        "total": total,
+        "max": 22,
+        "pct": round(total / 22 * 100, 1),
+        "level": lv,
+        "threshold": 8,
+        "pass": passed,
+    }
+
+
+# ════════════════════════════════════════════════════════
+# TOOL 4 — Score Part C
+# ════════════════════════════════════════════════════════
+def score_part_c(company: str, c1_economic_impact: int,
+                 c2_social_impact: int, c3_environmental_sustainability: int) -> dict:
+    """ประเมิน Part C — Impact & Sustainability (max 25)"""
+    scores = {
+        "C1_economic_impact":               c1_economic_impact,
+        "C2_social_impact":                 c2_social_impact,
+        "C3_environmental_sustainability":  c3_environmental_sustainability,
+    }
+    total = sum(scores.values())
+    lv = level_c(total)
+    passed = total >= FRAMEWORK["thresholds"]["C"]
+
+    save_score(company, "C", total, 25, lv, passed)
+
+    return {
+        "company": company,
+        "part": "C",
+        "scores": scores,
+        "total": total,
+        "max": 25,
+        "pct": round(total / 25 * 100, 1),
+        "level": lv,
+        "threshold": 12,
+        "pass": passed,
+    }
+
+
+# ════════════════════════════════════════════════════════
+# TOOL 5 — Score Part D
 # ════════════════════════════════════════════════════════
 def score_part_d(company: str, d1_forecast_model: int,
                  d2_calculation: int, d3_evaluative_plan: int) -> dict:
