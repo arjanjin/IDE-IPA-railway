@@ -440,34 +440,48 @@ def read_shared_kb(query: str, min_relevance: float = 0.7,
                 "note": "shared_kb ยังว่างเปล่า",
             }
 
-        # Try similarity search
-        findings = []
+        # Similarity search with multilingual embedding
+        all_results = []
+        similarity_ok = False
+        similarity_error = None
+
         try:
             results = collection.query(
                 query_texts=[query],
                 n_results=min(top_k, count),
+                include=["documents", "metadatas", "distances"],
             )
             if results["documents"] and results["documents"][0]:
+                similarity_ok = True
                 for doc, meta, dist in zip(
                     results["documents"][0],
                     results["metadatas"][0],
                     results["distances"][0],
                 ):
                     relevance = round(1 - dist, 3)
-                    if relevance >= min_relevance:
-                        findings.append({
-                            "content": doc[:400],
-                            "source_agent": meta.get("source_agent"),
-                            "tags": json.loads(meta.get("tags", "[]")),
-                            "topic": meta.get("topic", ""),
-                            "relevance": relevance,
-                            "written_at": meta.get("written_at"),
-                        })
-        except Exception:
-            pass
+                    all_results.append({
+                        "content": doc[:400],
+                        "source_agent": meta.get("source_agent"),
+                        "tags": json.loads(meta.get("tags", "[]")),
+                        "topic": meta.get("topic", ""),
+                        "relevance": relevance,
+                        "written_at": meta.get("written_at"),
+                    })
+        except Exception as e:
+            similarity_error = str(e)[:120]
 
-        # Fallback: ถ้า similarity search ไม่ได้ผล → ดึงทั้งหมด
-        if not findings and count > 0:
+        # Filter by min_relevance
+        findings = [r for r in all_results if r["relevance"] >= min_relevance]
+
+        # If nothing passes threshold, return all with below_threshold note
+        if not findings and all_results:
+            best = max(r["relevance"] for r in all_results)
+            findings = all_results
+            for f in findings:
+                f["note"] = f"below min_relevance ({min_relevance}), best={best}"
+
+        # Fallback only if similarity search itself failed
+        if not similarity_ok and not all_results and count > 0:
             fallback = collection.get(limit=top_k)
             for doc, meta in zip(
                 fallback["documents"],
@@ -480,16 +494,20 @@ def read_shared_kb(query: str, min_relevance: float = 0.7,
                     "topic": meta.get("topic", ""),
                     "relevance": 0.0,
                     "written_at": meta.get("written_at"),
-                    "note": "fallback — no similarity score",
+                    "note": f"fallback — similarity failed: {similarity_error}",
                 })
 
-        return {
+        result = {
             "query": query,
             "min_relevance": min_relevance,
             "findings": findings,
             "count": len(findings),
             "total_in_kb": count,
         }
+        if similarity_error:
+            result["similarity_error"] = similarity_error
+        return result
+
     except Exception as e:
         return {"findings": [], "error": str(e)}
 
