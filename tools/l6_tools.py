@@ -41,6 +41,8 @@ def get_chroma():
         _chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
     return _chroma_client
 
+EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+
 def get_collection(name: str):
     """Get or create a ChromaDB collection with multilingual embeddings"""
     return get_chroma().get_or_create_collection(
@@ -48,6 +50,77 @@ def get_collection(name: str):
         embedding_function=get_embedding_fn(),
         metadata={"hnsw:space": "cosine"}
     )
+
+
+def reset_shared_kb() -> dict:
+    """
+    Reset shared_kb collection — ลบ collection เก่า (embedded ด้วย default model)
+    แล้วสร้างใหม่ด้วย multilingual model เพื่อแก้ embedding mismatch
+    """
+    try:
+        chroma = get_chroma()
+        # ดึง docs เก่าก่อนลบ (ถ้ามี)
+        old_docs = []
+        try:
+            old_col = chroma.get_collection(name="shared_kb")
+            count = old_col.count()
+            if count > 0:
+                data = old_col.get(limit=count)
+                for doc, meta, doc_id in zip(
+                    data["documents"], data["metadatas"], data["ids"]
+                ):
+                    old_docs.append({"id": doc_id, "document": doc, "metadata": meta})
+        except Exception:
+            pass
+
+        # ลบ collection เก่า
+        try:
+            chroma.delete_collection(name="shared_kb")
+        except Exception:
+            pass
+
+        # สร้างใหม่ด้วย multilingual embedding
+        new_col = get_collection("shared_kb")
+
+        # Re-embed docs เก่า
+        re_embedded = 0
+        if old_docs:
+            new_col.upsert(
+                ids=[d["id"] for d in old_docs],
+                documents=[d["document"] for d in old_docs],
+                metadatas=[d["metadata"] for d in old_docs],
+            )
+            re_embedded = len(old_docs)
+
+        return {
+            "reset": True,
+            "old_docs_found": len(old_docs),
+            "re_embedded": re_embedded,
+            "embedding_model": EMBEDDING_MODEL,
+            "collection": "shared_kb",
+        }
+    except Exception as e:
+        return {"reset": False, "error": str(e)}
+
+
+def chroma_status() -> dict:
+    """รายงานสถานะ ChromaDB collections ทั้งหมด"""
+    try:
+        chroma = get_chroma()
+        collections = chroma.list_collections()
+        col_info = []
+        for col in collections:
+            c = chroma.get_collection(name=col.name)
+            col_info.append({"name": col.name, "count": c.count()})
+        return {
+            "status": "ok",
+            "embedding_model": EMBEDDING_MODEL,
+            "chroma_path": CHROMA_PATH,
+            "collections": col_info,
+            "total_collections": len(col_info),
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 def init_l6_db():

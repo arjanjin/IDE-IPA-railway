@@ -16,7 +16,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 import db
 from tools.l6_tools import (evaluate_output, check_convergence, query_memory,
-                             write_shared_kb, read_shared_kb, parse_input, init_l6_db)
+                             write_shared_kb, read_shared_kb, parse_input, init_l6_db,
+                             reset_shared_kb, chroma_status)
 from tools.ide_ipa_tools import (
     load_framework,
     score_part_a,
@@ -298,6 +299,19 @@ def l6_parse_input(
     return parse_input(raw_input, input_type)
 
 
+@mcp.tool()
+def l6_reset_shared_kb() -> dict:
+    """Reset shared_kb collection — ลบ embeddings เก่า แล้ว re-embed ด้วย multilingual model (แก้ relevance=0)
+    ใช้เมื่อ: read_shared_kb ได้ relevance=0 หรือ embedding model เปลี่ยน"""
+    return reset_shared_kb()
+
+
+@mcp.tool()
+def l6_chroma_status() -> dict:
+    """ดูสถานะ ChromaDB — embedding model, จำนวน collections, จำนวน docs"""
+    return chroma_status()
+
+
 # ════════════════════════════════════════════════════════
 # Health Endpoints
 # ════════════════════════════════════════════════════════
@@ -306,7 +320,7 @@ async def health(request):
         "status": "ok",
         "aaos_level": os.environ.get("AAOS_LEVEL", "5.5"),
         "framework": "ALIVE Framework V2.0",
-        "tools": 15,
+        "tools": 17,
         "mcp_protocol": True,
         "auth": "bearer_token" if MCP_AUTH_TOKENS else "none",
         "db": "PostgreSQL",
@@ -318,7 +332,8 @@ async def health_l6(request):
     return JSONResponse({
         "status": "ok",
         "aaos_level": "L6-ready",
-        "l6_tools": 6,
+        "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+        "l6_tools": 8,
         "tools": [
             "l6_evaluate_output",
             "l6_check_convergence",
@@ -326,6 +341,8 @@ async def health_l6(request):
             "l6_write_shared_kb",
             "l6_read_shared_kb",
             "l6_parse_input",
+            "l6_reset_shared_kb",
+            "l6_chroma_status",
         ]
     })
 
