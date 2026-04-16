@@ -283,7 +283,7 @@ def l6_write_shared_kb(
 @mcp.tool()
 def l6_read_shared_kb(
     query: str,
-    min_relevance: float = 0.7,
+    min_relevance: float = 0.35,
     top_k: int = 5,
 ) -> dict:
     """Cross-agent Knowledge Sharing — อ่าน shared_kb ทุก agent อ่านได้"""

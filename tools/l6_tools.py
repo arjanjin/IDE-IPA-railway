@@ -423,7 +423,7 @@ def write_shared_kb(agent_id: str, finding: str,
 # ════════════════════════════════════════════════════════
 # L6 TOOL 5 — Read Shared Knowledge Base
 # ════════════════════════════════════════════════════════
-def read_shared_kb(query: str, min_relevance: float = 0.7,
+def read_shared_kb(query: str, min_relevance: float = 0.35,
                    top_k: int = 5) -> dict:
     """
     Cross-agent Knowledge Sharing — อ่าน shared_kb
