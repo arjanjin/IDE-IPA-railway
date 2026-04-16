@@ -7,6 +7,8 @@ Railway host: Tools + PostgreSQL + ChromaDB
 import os
 import json
 import hmac
+import sqlite3
+from datetime import datetime
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
@@ -328,6 +330,60 @@ async def health(request):
     })
 
 
+async def backup_shared_kb(request):
+    """Export shared_kb collection as JSON (auth required if MCP_AUTH_TOKENS set)."""
+    if MCP_AUTH_TOKENS:
+        auth = request.headers.get("authorization", "")
+        if not auth.startswith("Bearer ") or not any(
+            hmac.compare_digest(auth[7:], t) for t in MCP_AUTH_TOKENS
+        ):
+            return PlainTextResponse("Unauthorized", status_code=401)
+
+    chroma_path = os.environ.get("CHROMA_PATH", "./data/chromadb")
+    db_path = os.path.join(chroma_path, "chroma.sqlite3")
+    if not os.path.exists(db_path):
+        return JSONResponse({"error": "chroma.sqlite3 not found"}, status_code=404)
+
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    coll = c.execute("SELECT id, name, dimension FROM collections").fetchone()
+    if not coll:
+        conn.close()
+        return JSONResponse({"error": "no collection"}, status_code=404)
+
+    cid, cname, dim = coll
+    rows = c.execute("""
+        SELECT e.id, e.embedding_id,
+               (SELECT string_value FROM embedding_metadata
+                WHERE id=e.id AND key='chroma:document') as doc
+        FROM embeddings e
+        WHERE segment_id IN (SELECT id FROM segments WHERE collection=?)
+        ORDER BY e.id
+    """, (cid,)).fetchall()
+
+    records = []
+    for rid, emb_id, doc in rows:
+        meta = {}
+        for k, sv, iv, fv, bv in c.execute(
+            "SELECT key, string_value, int_value, float_value, bool_value "
+            "FROM embedding_metadata WHERE id=?", (rid,)
+        ).fetchall():
+            if k == "chroma:document":
+                continue
+            meta[k] = sv if sv is not None else (iv if iv is not None else (fv if fv is not None else bv))
+        records.append({"id": emb_id, "document": doc, "metadata": meta})
+    conn.close()
+
+    return JSONResponse({
+        "backup_timestamp": datetime.now().isoformat(),
+        "collection": {"name": cname, "id": cid, "dimension": dim},
+        "record_count": len(records),
+        "records": records,
+    }, headers={
+        "Content-Disposition": f'attachment; filename="shared_kb_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"',
+    })
+
+
 async def health_l6(request):
     return JSONResponse({
         "status": "ok",
@@ -353,4 +409,5 @@ async def health_l6(request):
 app = mcp.streamable_http_app()
 app.routes.insert(0, Route("/health", health))
 app.routes.insert(1, Route("/health/l6", health_l6))
+app.routes.insert(2, Route("/backup/shared_kb", backup_shared_kb))
 app.add_middleware(BearerTokenAuthMiddleware)
