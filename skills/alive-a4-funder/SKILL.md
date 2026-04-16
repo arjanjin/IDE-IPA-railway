@@ -16,7 +16,7 @@ description: >
   forecast SROI, sensitivity analysis, deadweight, attribution, displacement,
   financial proxy, PV outcomes, discount rate, SROI range
 references:
-  - /mnt/skills/user/alive-framework-v2/SKILL.md
+  - ../alive-framework-v2/SKILL.md
   - references/sroi-standards.md
   - references/financial-proxies-thai.md
   - references/bpkh-criteria.md

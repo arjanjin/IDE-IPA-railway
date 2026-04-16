@@ -15,7 +15,7 @@ description: >
   ติดตามความก้าวหน้า, dashboard portfolio, monthly report, บพข. report,
   IDE cohort, track progress, coaching session, แผน coaching
 references:
-  - /mnt/skills/user/alive-framework-v2/SKILL.md
+  - ../alive-framework-v2/SKILL.md
   - references/coaching-framework.md
   - references/bpkh-reporting.md
 ---

@@ -14,7 +14,7 @@ description: >
   IDEs readiness, innovation readiness, ความพร้อม, วิเคราะห์บริษัท,
   company assessment, proposal readiness, TRL check, sector eligibility
 references:
-  - /mnt/skills/user/alive-framework-v2/SKILL.md
+  - ../alive-framework-v2/SKILL.md
   - references/ide-scoring-rubric.md
   - references/sector-eligibility.md
 ---

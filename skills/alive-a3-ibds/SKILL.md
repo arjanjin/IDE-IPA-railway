@@ -15,7 +15,7 @@ description: >
   evidence pack, IPA full analysis, impact assessment, client deliverable,
   research evidence, proposal strengthening, due diligence
 references:
-  - /mnt/skills/user/alive-framework-v2/SKILL.md
+  - ../alive-framework-v2/SKILL.md
   - references/ipa-methodology.md
   - references/literature-sources.md
 ---
