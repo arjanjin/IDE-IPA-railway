@@ -29,6 +29,7 @@ from tools.ide_ipa_tools import (
 
 load_dotenv()
 db.init_db()
+init_l6_db()
 
 # ════════════════════════════════════════════════════════
 # Auth — Bearer Token

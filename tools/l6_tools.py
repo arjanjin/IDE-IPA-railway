@@ -357,27 +357,48 @@ def read_shared_kb(query: str, min_relevance: float = 0.7,
                 "note": "shared_kb ยังว่างเปล่า",
             }
 
-        results = collection.query(
-            query_texts=[query],
-            n_results=min(top_k, count),
-        )
+        # Try similarity search
         findings = []
-        if results["documents"] and results["documents"][0]:
-            for doc, meta, dist in zip(
-                results["documents"][0],
-                results["metadatas"][0],
-                results["distances"][0],
+        try:
+            results = collection.query(
+                query_texts=[query],
+                n_results=min(top_k, count),
+            )
+            if results["documents"] and results["documents"][0]:
+                for doc, meta, dist in zip(
+                    results["documents"][0],
+                    results["metadatas"][0],
+                    results["distances"][0],
+                ):
+                    relevance = round(1 - dist, 3)
+                    if relevance >= min_relevance:
+                        findings.append({
+                            "content": doc[:400],
+                            "source_agent": meta.get("source_agent"),
+                            "tags": json.loads(meta.get("tags", "[]")),
+                            "topic": meta.get("topic", ""),
+                            "relevance": relevance,
+                            "written_at": meta.get("written_at"),
+                        })
+        except Exception:
+            pass
+
+        # Fallback: ถ้า similarity search ไม่ได้ผล → ดึงทั้งหมด
+        if not findings and count > 0:
+            fallback = collection.get(limit=top_k)
+            for doc, meta in zip(
+                fallback["documents"],
+                fallback["metadatas"],
             ):
-                relevance = round(1 - dist, 3)
-                if relevance >= min_relevance:
-                    findings.append({
-                        "content": doc[:400],
-                        "source_agent": meta.get("source_agent"),
-                        "tags": json.loads(meta.get("tags", "[]")),
-                        "topic": meta.get("topic", ""),
-                        "relevance": relevance,
-                        "written_at": meta.get("written_at"),
-                    })
+                findings.append({
+                    "content": doc[:400],
+                    "source_agent": meta.get("source_agent"),
+                    "tags": json.loads(meta.get("tags", "[]")),
+                    "topic": meta.get("topic", ""),
+                    "relevance": 0.0,
+                    "written_at": meta.get("written_at"),
+                    "note": "fallback — no similarity score",
+                })
 
         return {
             "query": query,
