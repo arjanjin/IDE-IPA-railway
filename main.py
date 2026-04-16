@@ -6,10 +6,13 @@ Railway host: Tools + PostgreSQL + ChromaDB
 """
 import os
 import json
+import hmac
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.routing import Route
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 import db
 from tools.l6_tools import (evaluate_output, check_convergence, query_memory,
@@ -28,10 +31,56 @@ load_dotenv()
 db.init_db()
 
 # ════════════════════════════════════════════════════════
+# Auth — Bearer Token
+# ════════════════════════════════════════════════════════
+# MCP_AUTH_TOKENS: comma-separated list of valid tokens
+# e.g. "token_alice_abc123,token_bob_def456,token_team_xyz789"
+MCP_AUTH_TOKENS = set(
+    t.strip() for t in os.environ.get("MCP_AUTH_TOKENS", "").split(",")
+    if t.strip()
+)
+
+
+class BearerTokenAuthMiddleware(BaseHTTPMiddleware):
+    """ตรวจ Authorization: Bearer <token> เฉพาะ /mcp endpoint"""
+
+    async def dispatch(self, request, call_next):
+        # Health endpoints ไม่ต้อง auth
+        if request.url.path.startswith("/health"):
+            return await call_next(request)
+
+        # ถ้าไม่ได้ตั้ง tokens ไว้ = เปิดสาธารณะ
+        if not MCP_AUTH_TOKENS:
+            return await call_next(request)
+
+        # ตรวจ Bearer token
+        auth_header = request.headers.get("authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return PlainTextResponse(
+                "Unauthorized — ต้องใส่ Authorization: Bearer <token>",
+                status_code=401,
+                headers={"WWW-Authenticate": 'Bearer realm="IDE-IPA Analyzer Pro"'},
+            )
+
+        token = auth_header[7:]  # ตัด "Bearer " ออก
+        # ใช้ hmac.compare_digest เพื่อป้องกัน timing attack
+        token_valid = any(
+            hmac.compare_digest(token, valid_token)
+            for valid_token in MCP_AUTH_TOKENS
+        )
+
+        if not token_valid:
+            return PlainTextResponse(
+                "Forbidden — token ไม่ถูกต้อง",
+                status_code=403,
+            )
+
+        return await call_next(request)
+
+
+# ════════════════════════════════════════════════════════
 # MCP Protocol Server (FastMCP)
 # ════════════════════════════════════════════════════════
-from mcp.server.transport_security import TransportSecuritySettings
-
 mcp = FastMCP(
     "IDE-IPA Analyzer Pro",
     instructions="IDE-IPA Analyzer Pro — Framework v2.1 tools for assessing Innovation Driven Enterprises. ไม่ต้องใช้ API Key.",
@@ -205,7 +254,7 @@ def l6_parse_input(
 
 
 # ════════════════════════════════════════════════════════
-# Health Endpoints (added to MCP Starlette app)
+# Health Endpoints
 # ════════════════════════════════════════════════════════
 async def health(request):
     return JSONResponse({
@@ -214,6 +263,7 @@ async def health(request):
         "framework": "IDE-IPA Analyzer Pro v2.1",
         "tools": 13,
         "mcp_protocol": True,
+        "auth": "bearer_token" if MCP_AUTH_TOKENS else "none",
         "db": "PostgreSQL",
         "api_key_required": False,
     })
@@ -236,8 +286,9 @@ async def health_l6(request):
 
 
 # ════════════════════════════════════════════════════════
-# ASGI App — MCP protocol + health routes
+# ASGI App — MCP protocol + auth + health
 # ════════════════════════════════════════════════════════
 app = mcp.streamable_http_app()
 app.routes.insert(0, Route("/health", health))
 app.routes.insert(1, Route("/health/l6", health_l6))
+app.add_middleware(BearerTokenAuthMiddleware)
