@@ -19,7 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import db
 from tools.l6_tools import (evaluate_output, check_convergence, query_memory,
                              write_shared_kb, read_shared_kb, parse_input, init_l6_db,
-                             reset_shared_kb, chroma_status)
+                             reset_shared_kb, chroma_status, get_collection, get_chroma)
 from tools.ide_ipa_tools import (
     load_framework,
     score_part_a,
@@ -384,6 +384,74 @@ async def backup_shared_kb(request):
     })
 
 
+async def restore_shared_kb(request):
+    """Restore shared_kb collection from backup JSON.
+    Query params:
+      mode=merge (default) — upsert records, keep existing
+      mode=replace&confirm=true — delete collection, re-create, then insert
+    Body: JSON matching /backup/shared_kb output (must contain 'records' list).
+    """
+    if MCP_AUTH_TOKENS:
+        auth = request.headers.get("authorization", "")
+        if not auth.startswith("Bearer ") or not any(
+            hmac.compare_digest(auth[7:], t) for t in MCP_AUTH_TOKENS
+        ):
+            return PlainTextResponse("Unauthorized", status_code=401)
+
+    mode = request.query_params.get("mode", "merge")
+    confirm = request.query_params.get("confirm", "") == "true"
+
+    if mode not in ("merge", "replace"):
+        return JSONResponse({"error": "mode must be 'merge' or 'replace'"}, status_code=400)
+    if mode == "replace" and not confirm:
+        return JSONResponse(
+            {"error": "replace mode requires confirm=true query param"},
+            status_code=400,
+        )
+
+    try:
+        payload = await request.json()
+    except Exception as e:
+        return JSONResponse({"error": f"invalid JSON body: {e}"}, status_code=400)
+
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        return JSONResponse({"error": "payload.records must be a non-empty list"}, status_code=400)
+
+    if mode == "replace":
+        try:
+            get_chroma().delete_collection(name="shared_kb")
+        except Exception:
+            pass
+
+    collection = get_collection("shared_kb")
+
+    ids, docs, metas, skipped = [], [], [], []
+    for r in records:
+        rid = r.get("id")
+        doc = r.get("document")
+        meta = r.get("metadata") or {}
+        if not rid or doc is None:
+            skipped.append({"id": rid, "reason": "missing id or document"})
+            continue
+        clean_meta = {k: v for k, v in meta.items() if isinstance(v, (str, int, float, bool))}
+        ids.append(rid)
+        docs.append(doc)
+        metas.append(clean_meta)
+
+    if ids:
+        collection.upsert(ids=ids, documents=docs, metadatas=metas)
+
+    return JSONResponse({
+        "restored": len(ids),
+        "skipped": len(skipped),
+        "skipped_details": skipped,
+        "mode": mode,
+        "total_docs": collection.count(),
+        "restored_at": datetime.now().isoformat(),
+    })
+
+
 async def health_l6(request):
     return JSONResponse({
         "status": "ok",
@@ -410,4 +478,5 @@ app = mcp.streamable_http_app()
 app.routes.insert(0, Route("/health", health))
 app.routes.insert(1, Route("/health/l6", health_l6))
 app.routes.insert(2, Route("/backup/shared_kb", backup_shared_kb))
+app.routes.insert(3, Route("/restore/shared_kb", restore_shared_kb, methods=["POST"]))
 app.add_middleware(BearerTokenAuthMiddleware)
