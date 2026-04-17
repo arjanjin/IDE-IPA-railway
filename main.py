@@ -19,7 +19,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import db
 from tools.l6_tools import (evaluate_output, check_convergence, query_memory,
                              write_shared_kb, read_shared_kb, parse_input, init_l6_db,
-                             reset_shared_kb, chroma_status, get_collection, get_chroma)
+                             reset_shared_kb, chroma_status, get_collection, get_chroma,
+                             kb_extract_lessons, kb_match_peers,
+                             kb_broadcast_lessons, kb_flag_critical_risk)
 from tools.ide_ipa_tools import (
     load_framework,
     score_part_a,
@@ -302,6 +304,33 @@ def l6_parse_input(
 
 
 @mcp.tool()
+def l6_kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
+    """Knowledge Broker — สกัด lesson atoms จาก coaching session ผ่าน semantic query บน shared_kb"""
+    return kb_extract_lessons(session_query, max_lessons)
+
+
+@mcp.tool()
+def l6_kb_match_peers(target_query: str, top_k: int = 3, exclude_agents: list = None) -> dict:
+    """Knowledge Broker — หา peer agents/companies ที่มีเนื้อหาใกล้เคียง target_query"""
+    return kb_match_peers(target_query, top_k, exclude_agents)
+
+
+@mcp.tool()
+def l6_kb_broadcast_lessons(target_audience: str, lesson_query: str,
+                            priority: str = "medium", max_lessons: int = 3) -> dict:
+    """Knowledge Broker — สร้าง broadcast peer-learning ไปยัง target_audience (priority: low/medium/high/critical)"""
+    return kb_broadcast_lessons(target_audience, lesson_query, priority, max_lessons)
+
+
+@mcp.tool()
+def l6_kb_flag_critical_risk(company_id: str, risk_description: str,
+                             severity: str = "high",
+                             escalation_contacts: list = None) -> dict:
+    """Knowledge Broker — บันทึก critical risk alert (severity: low/medium/high/critical)"""
+    return kb_flag_critical_risk(company_id, risk_description, severity, escalation_contacts)
+
+
+@mcp.tool()
 def l6_reset_shared_kb() -> dict:
     """Reset shared_kb collection — ลบ embeddings เก่า แล้ว re-embed ด้วย multilingual model (แก้ relevance=0)
     ใช้เมื่อ: read_shared_kb ได้ relevance=0 หรือ embedding model เปลี่ยน"""
@@ -457,7 +486,7 @@ async def health_l6(request):
         "status": "ok",
         "aaos_level": "L6-ready",
         "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
-        "l6_tools": 8,
+        "l6_tools": 12,
         "tools": [
             "l6_evaluate_output",
             "l6_check_convergence",
@@ -467,6 +496,10 @@ async def health_l6(request):
             "l6_parse_input",
             "l6_reset_shared_kb",
             "l6_chroma_status",
+            "l6_kb_extract_lessons",
+            "l6_kb_match_peers",
+            "l6_kb_broadcast_lessons",
+            "l6_kb_flag_critical_risk",
         ]
     })
 

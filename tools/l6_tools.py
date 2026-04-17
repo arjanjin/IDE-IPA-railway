@@ -5,7 +5,7 @@ AAOS L6 Tools — 6 New Tools for Agentic Loop
 """
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
@@ -563,3 +563,208 @@ def parse_input(raw_input: str, input_type: str) -> dict:
         "structured": structured,
         "ready_for_agent": True,
     }
+
+
+# ════════════════════════════════════════════════════════
+# L6 KNOWLEDGE BROKER — 4 tools (extract / match / broadcast / flag risk)
+# ════════════════════════════════════════════════════════
+# Storage: shared_kb collection, distinguished by metadata field `type`
+#   type="knowledge"     → default (existing write_shared_kb)
+#   type="lesson_atom"   → extracted from coaching sessions
+#   type="broadcast"     → peer-learning broadcasts
+#   type="risk_alert"    → critical risk flags
+
+_LESSON_KEYWORDS = {
+    "solution":      ["solved", "successfully", "achieved", "completed", "delivered", "shipped"],
+    "risk":          ["gap", "weakness", "risk", "below", "rejection", "failed", "missing", "ปัญหา"],
+    "best_practice": ["best practice", "recommend", "framework", "strategy", "approach"],
+}
+
+
+def _classify_atom(text: str) -> str:
+    t = text.lower()
+    for atom_type, kws in _LESSON_KEYWORDS.items():
+        if any(k in t for k in kws):
+            return atom_type
+    return "pattern"
+
+
+def _kb_query(query_text: str, where: dict = None, n: int = 20) -> list:
+    """Semantic query against shared_kb. Returns list of {id, document, metadata, distance}."""
+    col = get_collection("shared_kb")
+    if col.count() == 0:
+        return []
+    kwargs = {"query_texts": [query_text], "n_results": min(n, col.count())}
+    if where:
+        kwargs["where"] = where
+    q = col.query(**kwargs)
+    out = []
+    for i, rid in enumerate(q["ids"][0]):
+        out.append({
+            "id": rid,
+            "document": q["documents"][0][i],
+            "metadata": q["metadatas"][0][i] or {},
+            "distance": q["distances"][0][i],
+        })
+    return out
+
+
+def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
+    """Extract lesson atoms from coaching session(s) found via semantic query.
+    Stores atoms back to shared_kb with type=lesson_atom.
+    """
+    try:
+        sources = _kb_query(session_query, n=10)
+        sources = [s for s in sources if s["metadata"].get("type") != "lesson_atom"]
+        if not sources:
+            return {"extracted": 0, "lessons": [], "reason": "no source documents matched query"}
+
+        col = get_collection("shared_kb")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        lessons = []
+        for idx, src in enumerate(sources[:max_lessons]):
+            doc = src["document"] or ""
+            atom_type = _classify_atom(doc)
+            atom_id = f"KB_LESSON_{ts}_{idx:02d}"
+            content = doc[:600]
+            src_meta = src["metadata"]
+            tags_raw = src_meta.get("tags", "[]")
+            try:
+                src_tags = json.loads(tags_raw) if isinstance(tags_raw, str) else (tags_raw or [])
+            except Exception:
+                src_tags = []
+            meta = {
+                "type": "lesson_atom",
+                "atom_type": atom_type,
+                "source_id": src["id"],
+                "source_agent": src_meta.get("source_agent", "unknown"),
+                "source_topic": src_meta.get("topic", ""),
+                "tags": json.dumps(src_tags),
+                "topic": f"Lesson: {src_meta.get('topic','')[:80]}",
+                "written_at": datetime.now().isoformat(),
+                "confidence": 0.7 if atom_type == "pattern" else 0.85,
+            }
+            col.upsert(ids=[atom_id], documents=[content], metadatas=[meta])
+            lessons.append({
+                "atom_id": atom_id,
+                "atom_type": atom_type,
+                "source_id": src["id"],
+                "source_topic": src_meta.get("topic", ""),
+                "preview": content[:160],
+            })
+        return {"extracted": len(lessons), "lessons": lessons, "session_query": session_query}
+    except Exception as e:
+        return {"extracted": 0, "error": str(e)}
+
+
+def kb_match_peers(target_query: str, top_k: int = 3, exclude_agents: list = None) -> dict:
+    """Find peer documents/agents semantically similar to target_query.
+    Aggregates by source_agent — returns top peers with relevance.
+    """
+    try:
+        results = _kb_query(target_query, n=20)
+        results = [r for r in results if r["metadata"].get("type") not in ("broadcast", "risk_alert")]
+        excl = set(a.lower() for a in (exclude_agents or []))
+        agg = {}
+        for r in results:
+            agent = r["metadata"].get("source_agent", "unknown")
+            if agent.lower() in excl:
+                continue
+            relevance = max(0.0, 1.0 - r["distance"])
+            entry = agg.setdefault(agent, {"agent": agent, "matches": [], "best_relevance": 0.0})
+            entry["matches"].append({
+                "id": r["id"],
+                "topic": r["metadata"].get("topic", ""),
+                "relevance": round(relevance, 3),
+            })
+            entry["best_relevance"] = max(entry["best_relevance"], relevance)
+        ranked = sorted(agg.values(), key=lambda x: x["best_relevance"], reverse=True)[:top_k]
+        for p in ranked:
+            p["matches"] = sorted(p["matches"], key=lambda m: m["relevance"], reverse=True)[:3]
+            p["best_relevance"] = round(p["best_relevance"], 3)
+        return {"target_query": target_query, "peers_found": len(ranked), "peers": ranked}
+    except Exception as e:
+        return {"peers_found": 0, "error": str(e)}
+
+
+def kb_broadcast_lessons(target_audience: str, lesson_query: str,
+                         priority: str = "medium", max_lessons: int = 3) -> dict:
+    """Compose a peer-learning broadcast. Selects relevant lesson_atoms via lesson_query
+    and stores the broadcast as type=broadcast in shared_kb.
+    """
+    if priority not in ("low", "medium", "high", "critical"):
+        return {"broadcast_created": False, "error": "priority must be low/medium/high/critical"}
+    try:
+        atoms = _kb_query(lesson_query, where={"type": "lesson_atom"}, n=max_lessons)
+        if not atoms:
+            return {"broadcast_created": False, "reason": "no lesson_atom matched", "lesson_query": lesson_query}
+
+        deadline_days = {"critical": 1, "high": 3, "medium": 7, "low": 14}[priority]
+        deadline = (datetime.now() + timedelta(days=deadline_days)).isoformat()
+        body_lines = [f"Peer-learning broadcast for: {target_audience}",
+                      f"Priority: {priority} | Action by: {deadline}",
+                      "Recommended lessons:"]
+        atom_ids = []
+        for a in atoms:
+            body_lines.append(f"  - [{a['id']}] {a['metadata'].get('topic','')}: {a['document'][:140]}")
+            atom_ids.append(a["id"])
+        body = "\n".join(body_lines)
+
+        col = get_collection("shared_kb")
+        bid = f"KB_BROADCAST_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        col.upsert(ids=[bid], documents=[body], metadatas=[{
+            "type": "broadcast",
+            "target_audience": target_audience,
+            "priority": priority,
+            "deadline": deadline,
+            "lesson_atom_ids": json.dumps(atom_ids),
+            "topic": f"Broadcast → {target_audience}",
+            "tags": json.dumps(["broadcast", priority]),
+            "written_at": datetime.now().isoformat(),
+        }])
+        return {
+            "broadcast_created": True,
+            "broadcast_id": bid,
+            "target_audience": target_audience,
+            "priority": priority,
+            "deadline": deadline,
+            "lesson_count": len(atom_ids),
+            "lesson_atom_ids": atom_ids,
+        }
+    except Exception as e:
+        return {"broadcast_created": False, "error": str(e)}
+
+
+def kb_flag_critical_risk(company_id: str, risk_description: str,
+                          severity: str = "high",
+                          escalation_contacts: list = None) -> dict:
+    """Flag and persist a critical risk alert as type=risk_alert in shared_kb."""
+    if severity not in ("low", "medium", "high", "critical"):
+        return {"alert_created": False, "error": "severity must be low/medium/high/critical"}
+    try:
+        deadline_days = {"critical": 1, "high": 3, "medium": 7, "low": 14}[severity]
+        deadline = (datetime.now() + timedelta(days=deadline_days)).isoformat()
+        contacts = escalation_contacts or []
+        col = get_collection("shared_kb")
+        aid = f"KB_RISK_{company_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        body = f"RISK ALERT [{severity.upper()}] for {company_id}\n\n{risk_description}\n\nDeadline: {deadline}"
+        col.upsert(ids=[aid], documents=[body], metadatas=[{
+            "type": "risk_alert",
+            "company_id": company_id,
+            "severity": severity,
+            "deadline": deadline,
+            "escalation_contacts": json.dumps(contacts),
+            "topic": f"Risk: {company_id} ({severity})",
+            "tags": json.dumps(["risk_alert", severity, company_id]),
+            "written_at": datetime.now().isoformat(),
+        }])
+        return {
+            "alert_created": True,
+            "alert_id": aid,
+            "company_id": company_id,
+            "severity": severity,
+            "deadline": deadline,
+            "escalation_contacts": contacts,
+        }
+    except Exception as e:
+        return {"alert_created": False, "error": str(e)}
