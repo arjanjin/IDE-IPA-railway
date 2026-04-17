@@ -17,6 +17,7 @@ data/
 # Runtime backups (generated via /backup/shared_kb)
 backups/
 backup*.json
+restored_check*.json
 
 # IDE
 .vscode/
