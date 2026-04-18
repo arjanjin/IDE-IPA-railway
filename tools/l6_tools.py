@@ -6,6 +6,7 @@ AAOS L6 Tools — 6 New Tools for Agentic Loop
 import os
 import re
 import json
+import hashlib
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
@@ -635,9 +636,21 @@ def _kb_query(query_text: str, where: dict = None, n: int = 20) -> list:
     return out
 
 
+def _derive_lesson_atom_id(source_id: str, atom_type: str) -> str:
+    """Deterministic atom_id from source_id + atom_type.
+    Calling extract_lessons twice on the same source yields the SAME id
+    → ChromaDB upsert replaces instead of duplicating (idempotency).
+    """
+    h = hashlib.md5(f"{source_id}|{atom_type}".encode("utf-8")).hexdigest()[:12]
+    return f"KB_LESSON_{h}"
+
+
 def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
     """Extract lesson atoms from coaching session(s) found via semantic query.
     Stores atoms back to shared_kb with type=lesson_atom.
+
+    Idempotent (v2.1.2): re-calling with the same sources does NOT create
+    duplicate atoms. atom_id is derived deterministically from source_id.
     """
     try:
         sources = _kb_query(session_query, n=10)
@@ -646,12 +659,13 @@ def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
             return {"extracted": 0, "lessons": [], "reason": "no source documents matched query"}
 
         col = get_collection("shared_kb")
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         lessons = []
-        for idx, src in enumerate(sources[:max_lessons]):
+        new_count = 0
+        existing_count = 0
+        for src in sources[:max_lessons]:
             doc = src["document"] or ""
             atom_type = _classify_atom(doc)
-            atom_id = f"KB_LESSON_{ts}_{idx:02d}"
+            atom_id = _derive_lesson_atom_id(src["id"], atom_type)
             content = doc[:600]
             src_meta = src["metadata"]
             tags_raw = src_meta.get("tags", "[]")
@@ -659,6 +673,22 @@ def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
                 src_tags = json.loads(tags_raw) if isinstance(tags_raw, str) else (tags_raw or [])
             except Exception:
                 src_tags = []
+
+            # Check if atom already exists to report status + preserve first_derived_at
+            first_derived_at = datetime.now().isoformat()
+            status = "newly_derived"
+            try:
+                existing = col.get(ids=[atom_id])
+                if existing and existing.get("ids"):
+                    status = "already_derived"
+                    existing_count += 1
+                    prev_meta = existing.get("metadatas", [{}])[0] or {}
+                    first_derived_at = prev_meta.get("first_derived_at", first_derived_at)
+                else:
+                    new_count += 1
+            except Exception:
+                new_count += 1
+
             meta = {
                 "type": "lesson_atom",
                 "atom_type": atom_type,
@@ -668,8 +698,10 @@ def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
                 "tags": json.dumps(src_tags),
                 "topic": f"Lesson: {src_meta.get('topic','')[:80]}",
                 "written_at": datetime.now().isoformat(),
+                "first_derived_at": first_derived_at,
                 "confidence": 0.7 if atom_type == "pattern" else 0.85,
             }
+            # upsert with deterministic id → idempotent
             col.upsert(ids=[atom_id], documents=[content], metadatas=[meta])
             lessons.append({
                 "atom_id": atom_id,
@@ -677,10 +709,65 @@ def kb_extract_lessons(session_query: str, max_lessons: int = 5) -> dict:
                 "source_id": src["id"],
                 "source_topic": src_meta.get("topic", ""),
                 "preview": content[:160],
+                "status": status,
             })
-        return {"extracted": len(lessons), "lessons": lessons, "session_query": session_query}
+        return {
+            "extracted": len(lessons),
+            "new_atoms": new_count,
+            "reused_atoms": existing_count,
+            "lessons": lessons,
+            "session_query": session_query,
+        }
     except Exception as e:
         return {"extracted": 0, "error": str(e)}
+
+
+def kb_cleanup_duplicate_lessons() -> dict:
+    """One-shot cleanup for pollution from v2.1.1 and earlier.
+    Finds lesson_atom records with OLD-style timestamp ids (KB_LESSON_YYYYMMDD_*),
+    groups by source_id, keeps the earliest one, and deletes duplicates.
+    Safe to run multiple times — idempotent.
+    """
+    try:
+        col = get_collection("shared_kb")
+        if col.count() == 0:
+            return {"kept": 0, "deleted": 0, "note": "collection empty"}
+
+        # Pull all lesson_atom entries
+        all_data = col.get(where={"type": "lesson_atom"})
+        ids = all_data.get("ids", [])
+        metas = all_data.get("metadatas", []) or []
+
+        # Group by source_id
+        groups = {}  # source_id -> list of (id, written_at)
+        for atom_id, meta in zip(ids, metas):
+            meta = meta or {}
+            src = meta.get("source_id", atom_id)
+            written = meta.get("written_at", "9999-99-99")
+            groups.setdefault(src, []).append((atom_id, written))
+
+        # For each source: keep earliest, delete the rest
+        kept_ids = []
+        deleted_ids = []
+        for src, items in groups.items():
+            items.sort(key=lambda x: x[1])  # earliest first
+            keeper = items[0][0]
+            kept_ids.append(keeper)
+            for dup_id, _ in items[1:]:
+                if dup_id != keeper:
+                    deleted_ids.append(dup_id)
+
+        if deleted_ids:
+            col.delete(ids=deleted_ids)
+
+        return {
+            "kept": len(kept_ids),
+            "deleted": len(deleted_ids),
+            "groups_processed": len(groups),
+            "deleted_ids_sample": deleted_ids[:20],
+        }
+    except Exception as e:
+        return {"kept": 0, "deleted": 0, "error": str(e)}
 
 
 def kb_match_peers(target_query: str, top_k: int = 3, exclude_agents: list = None) -> dict:
