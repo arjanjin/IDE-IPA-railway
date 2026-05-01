@@ -1,4 +1,9 @@
 # ALIVE Framework V2.0 🚀
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19945163.svg)](https://doi.org/10.5281/zenodo.19945163)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0002--1524--1443-A6CE39?logo=orcid)](https://orcid.org/0000-0002-1524-1443)
+
 **Assessment of Living Innovation & Value Ecosystem**
 ไม่ต้องใช้ `ANTHROPIC_API_KEY` — Claude Max Plan ทำ AI ทั้งหมด
 
