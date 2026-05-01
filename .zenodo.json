@@ -1,0 +1,39 @@
+﻿{
+  "title": "IDE-IPA-Railway: ALIVE Framework V2.0 MCP Server for Innovation-Driven Enterprise Assessment",
+  "description": "<p>An MCP (Model Context Protocol) server implementing the <strong>ALIVE Framework V2.0</strong> (Agentic Longitudinal IDE-IPA Value Evaluation) for evaluating Innovation-Driven Enterprises (IDEs) under Thailand's PMUC funding scheme.</p><p><strong>Architecture:</strong></p><ul><li>100-point rubric scoring across four parts: Part A (Standard IDE Assessment, 28 points), Part B (Research-Specific Assessment, 22 points), Part C (Impact Pathway Logic / Ex-Ante Analysis, 25 points), Part D (SROI Assessment, 25 points)</li><li>PACT (Plan-Act-Check-Track) longitudinal coaching loop with auto-calibrating halting</li><li>Dual-database architecture: PostgreSQL for assessment history and assessor records; ChromaDB for semantic memory using paraphrase-multilingual-MiniLM-L12-v2 (384-dim, Thai-English bilingual)</li><li>L6 Knowledge Broker tools for cross-agent semantic learning, peer matching, and lesson-atom extraction</li><li>Self-evaluation loop with task-specific keyword matching</li><li>Production deployment on Railway with FastMCP transport</li></ul><p><strong>Version 2.1.2 changes:</strong> Idempotent l6_kb_extract_lessons tool generates deterministic MD5-hash atom_ids instead of timestamp-based IDs, eliminating duplicate atoms in shared_kb on retry.</p><p><strong>Reproducibility:</strong> This Zenodo archive captures the exact codebase used to generate empirical results reported in the associated ALIVE Framework academic paper.</p>",
+  "creators": [
+    {
+      "name": "Numsomran, Arjin",
+      "affiliation": "Department of Instrumentation and Control Engineering, School of Engineering, King Mongkut Institute of Technology Ladkrabang (KMITL)",
+      "orcid": "0000-0002-1524-1443"
+    }
+  ],
+  "keywords": [
+    "Model Context Protocol",
+    "MCP",
+    "Innovation-Driven Enterprise",
+    "IDE",
+    "IDE-IPA Framework",
+    "ALIVE Framework",
+    "Social Return on Investment",
+    "SROI",
+    "Agentic AI",
+    "Longitudinal Assessment",
+    "ChromaDB",
+    "PostgreSQL",
+    "Semantic Memory",
+    "Knowledge Broker",
+    "Research Evaluation",
+    "PMUC",
+    "Thailand Research Policy",
+    "Coaching Loop",
+    "Ex-Ante Impact Analysis"
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "access_right": "open",
+  "language": "eng",
+  "version": "2.1.2",
+  "publication_date": "2026-05-01",
+  "notes": "Developed at the Department of Instrumentation and Control Engineering, KMITL. This software supports academic research on AI-driven longitudinal evaluation of Innovation-Driven Enterprises under Thailand PMUC funding scheme."
+}

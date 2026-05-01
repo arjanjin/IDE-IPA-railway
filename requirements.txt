@@ -1,10 +1,113 @@
-fastapi>=0.115.0
-uvicorn>=0.34.0
-sqlalchemy>=2.0.40
-psycopg2-binary>=2.9.9
-chromadb>=0.6.3
-sentence-transformers>=3.0.0
-python-dotenv>=1.0.1
-httpx>=0.28.0
-pydantic>=2.11.0
-mcp[http]>=1.27.0
+# =============================================================================
+# requirements.txt — IDE-IPA-railway v2.1.2
+# ALIVE Framework V2.0 MCP Server
+#
+# Pinned for reproducibility — Zenodo Version DOI archival
+# Generated: 2026-05-01
+# =============================================================================
+#
+# Pinning strategy:
+#   - Exact pins (==) for ALL direct dependencies to guarantee bit-identical
+#     reproduction of empirical results in the ALIVE paper
+#   - Use `pip install -r requirements.txt` for production
+#   - Use `pip install -r requirements-dev.txt` for development (looser bounds)
+#
+# To regenerate this file from your live environment:
+#   pip freeze > requirements.lock.txt
+#   # then merge into this file, keeping only direct dependencies
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Web framework + ASGI server
+# -----------------------------------------------------------------------------
+fastapi==0.115.14
+uvicorn[standard]==0.34.3
+starlette==0.41.3
+
+# -----------------------------------------------------------------------------
+# MCP (Model Context Protocol) — core SDK
+# -----------------------------------------------------------------------------
+mcp[http]==1.27.0
+
+# -----------------------------------------------------------------------------
+# Database — PostgreSQL (production) + SQLAlchemy ORM
+# -----------------------------------------------------------------------------
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+alembic==1.14.0
+
+# -----------------------------------------------------------------------------
+# Vector database — ChromaDB
+# Pinned to 0.6.3 to match production deployment on Railway
+# Note: ChromaDB 1.x has breaking API changes; do NOT upgrade without testing
+# -----------------------------------------------------------------------------
+chromadb==0.6.3
+
+# -----------------------------------------------------------------------------
+# Embedding model — Multilingual sentence transformers
+# paraphrase-multilingual-MiniLM-L12-v2 (384-dim, Thai-English bilingual)
+# -----------------------------------------------------------------------------
+sentence-transformers==3.3.1
+transformers==4.46.3
+torch==2.5.1
+huggingface-hub==0.26.5
+tokenizers==0.20.3
+safetensors==0.4.5
+
+# -----------------------------------------------------------------------------
+# Data validation
+# -----------------------------------------------------------------------------
+pydantic==2.11.7
+pydantic-settings==2.6.1
+
+# -----------------------------------------------------------------------------
+# HTTP client (for MCP transport + external API calls if needed)
+# -----------------------------------------------------------------------------
+httpx==0.28.1
+httpcore==1.0.7
+
+# -----------------------------------------------------------------------------
+# Configuration / Environment
+# -----------------------------------------------------------------------------
+python-dotenv==1.0.1
+
+# -----------------------------------------------------------------------------
+# Numerical computation (used by ChromaDB + sentence-transformers)
+# -----------------------------------------------------------------------------
+numpy==1.26.4
+scipy==1.14.1
+scikit-learn==1.5.2
+
+# -----------------------------------------------------------------------------
+# Utility libraries
+# -----------------------------------------------------------------------------
+python-multipart==0.0.20
+typing-extensions==4.12.2
+anyio==4.7.0
+sniffio==1.3.1
+
+# -----------------------------------------------------------------------------
+# Production logging (optional, recommended)
+# -----------------------------------------------------------------------------
+structlog==24.4.0
+
+# =============================================================================
+# Notes for reviewers and Zenodo users:
+# =============================================================================
+# 1. To reproduce empirical results from the ALIVE paper (Tables IX, XI):
+#      python -m venv venv
+#      source venv/bin/activate    # or venv\Scripts\activate on Windows
+#      pip install --upgrade pip==24.3.1
+#      pip install -r requirements.txt
+#
+# 2. Python version requirement: >= 3.10, < 3.13
+#    Tested on: Python 3.11.10 (Railway production)
+#
+# 3. ChromaDB 0.6.3 is intentionally pinned — DO NOT upgrade to 1.x without
+#    re-validating l6_query_memory and l6_kb_extract_lessons against the
+#    test suite in test_v22.py
+#
+# 4. torch 2.5.1 is CPU-only suitable; GPU is not required for the
+#    paraphrase-multilingual-MiniLM-L12-v2 model at the embedding scales
+#    used in the ALIVE assessment pipeline.
+# =============================================================================

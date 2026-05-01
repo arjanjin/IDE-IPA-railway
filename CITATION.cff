@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it using the metadata below."
+title: "IDE-IPA-Railway: ALIVE Framework V2.0 MCP Server for Innovation-Driven Enterprise Assessment"
+abstract: >-
+  An MCP (Model Context Protocol) server implementing the ALIVE Framework V2.0
+  (Agentic Longitudinal IDE-IPA Value Evaluation) for evaluating Innovation-Driven
+  Enterprises (IDEs) under Thailand's PMUC funding scheme. Features a 100-point
+  rubric (Parts A-D), the PACT longitudinal coaching loop, and a dual-database
+  architecture combining PostgreSQL for assessment records with ChromaDB for
+  semantic memory using paraphrase-multilingual-MiniLM-L12-v2.
+authors:
+  - family-names: "Numsomran"
+    given-names: "Arjin"
+    affiliation: "Department of Instrumentation and Control Engineering, School of Engineering, King Mongkut's Institute of Technology Ladkrabang"
+    orcid: "https://orcid.org/0000-0002-1524-1443"
+    email: "arjin.nu@kmitl.ac.th"
+version: "2.1.2"
+date-released: "2026-05-01"
+license: MIT
+repository-code: "https://github.com/arjanjin/IDE-IPA-railway"
+url: "https://github.com/arjanjin/IDE-IPA-railway"
+type: software
+keywords:
+  - "Model Context Protocol"
+  - "MCP"
+  - "ALIVE Framework"
+  - "IDE-IPA"
+  - "Innovation-Driven Enterprise"
+  - "SROI"
+  - "Agentic AI"
+  - "ChromaDB"
+  - "PostgreSQL"
+  - "PMUC"
+  - "Longitudinal Assessment"
+preferred-citation:
+  type: software
+  title: "IDE-IPA-Railway: ALIVE Framework V2.0 MCP Server"
+  authors:
+    - family-names: "Numsomran"
+      given-names: "Arjin"
+      orcid: "https://orcid.org/0000-0002-1524-1443"
+      affiliation: "King Mongkut's Institute of Technology Ladkrabang"
+  version: "2.1.2"
+  year: 2026
+  publisher:
+    name: "Zenodo"
